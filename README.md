@@ -2,6 +2,8 @@
 
 A standalone, turn-based browser game at the repository root. Play at https://jelaludo.github.io/Dyson-Command/. The **Rules** tab at `?tab=rules` gives a worked opening, a glossary, all action rules and costs, collector rotation order, beam status meanings and both win conditions. Switching between the map and rules preserves the current run. It begins after the first world, Eos, has been terraformed in the A6 [landing-to-starlight story](https://jelaludo.github.io/SentryTowers_A6/terraforming-story/). The star map deliberately simplifies six planets; it does not import or alter any 3D asset. Galcon's official description of fleets sent planet to planet is a mechanical reference, while the optical routing and terraforming sequence are original A6 rules:
 
+Click a planet to open its action wheel. The wheel offers the actions available for that world: set a player world as fleet source; set a fleet size and launch to another world; terraform a secured foothold; pulse a rival with the SOL laser; or aim compatible collectors at an online receiver. The compact Orders card shows the current fleet source and advances a turn. Escape, the close button, or a click on empty map space dismisses the wheel.
+
 https://www.galcon.com/classic/index.html
 
 ## Frontier campaign

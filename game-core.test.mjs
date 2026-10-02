@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {makeGame,planet,beamLinks,powerOutput,launchFleet,terraform,laserPulse,rotateCollector,waitTurn,objective} from './game-core.js';
+import {makeGame,planet,beamLinks,powerOutput,launchFleet,terraform,laserPulse,rotateCollector,aimCollector,waitTurn,objective} from './game-core.js';
 
 test('optics challenge needs four distinct live receivers',()=>{
  const state=makeGame('optics');assert.equal(powerOutput(state),16);assert.equal(beamLinks(state)[1].reason,'receiver saturated');
@@ -22,4 +22,15 @@ test('orbital pulse spends power and weakens only a rival',()=>{
 
 test('invalid orders do not advance the turn',()=>{
  const state=makeGame(),turn=state.turn;assert.equal(launchFleet(state,'eos','eos',3).ok,false);assert.equal(launchFleet(state,'eos','iona',99).ok,false);assert.equal(terraform(state,'iona').ok,false);assert.equal(state.turn,turn);
+});
+
+test('direct collector aiming respects reachability and receiver capacity',()=>{
+ const state=makeGame('optics'),turn=state.turn;
+ assert.equal(aimCollector(state,'hel1','kora').ok,false);
+ assert.equal(aimCollector(state,'hel2','talus').ok,true);
+ assert.equal(aimCollector(state,'seed1','iona').ok,true);
+ assert.equal(aimCollector(state,'seed2','kora').ok,true);
+ assert.equal(powerOutput(state),82);
+ assert.equal(state.won,true);
+ assert.equal(state.turn,turn);
 });
