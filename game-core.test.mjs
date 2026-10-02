@@ -34,3 +34,21 @@ test('direct collector aiming respects reachability and receiver capacity',()=>{
  assert.equal(state.won,true);
  assert.equal(state.turn,turn);
 });
+
+test('beginner walkthrough wins with the exact ships and beam choices shown in Rules',()=>{
+ const state=makeGame();
+ assert.equal(launchFleet(state,'eos','iona',9).ok,true);
+ waitTurn(state);
+ assert.equal(terraform(state,'iona').ok,true);
+ assert.equal(aimCollector(state,'seed1','iona').ok,true);
+ assert.equal(launchFleet(state,'eos','talus',10).ok,true);
+ waitTurn(state);
+ assert.equal(terraform(state,'talus').ok,true);
+ assert.equal(aimCollector(state,'hel2','talus').ok,true);
+ assert.equal(launchFleet(state,'talus','kora',6).ok,true);
+ assert.equal(terraform(state,'kora').ok,true);
+ assert.equal(aimCollector(state,'seed2','kora').ok,true);
+ assert.equal(objective(state).worlds,4);
+ assert.equal(powerOutput(state),82);
+ assert.equal(state.won,true);
+});
