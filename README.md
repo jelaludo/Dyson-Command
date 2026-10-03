@@ -1,23 +1,21 @@
-# Dyson Command / post-terraforming strategy prototype
+# Dyson Command
 
-A standalone, turn-based browser game at the repository root. Play at https://jelaludo.github.io/Dyson-Command/. The **Rules** tab at `?tab=rules` opens with a plain-language goal, a first-planet example, an exact winning route and a three-item troubleshooting list. The full glossary, costs, collector rotation order, beam statuses and both win conditions are available in an expandable reference. Switching between the map and rules preserves the current run. It begins after the first world, Eos, has been terraformed in the A6 [landing-to-starlight story](https://jelaludo.github.io/SentryTowers_A6/terraforming-story/). The star map deliberately simplifies six planets; it does not import or alter any 3D asset. Galcon's official description of fleets sent planet to planet is a mechanical reference, while the optical routing and terraforming sequence are original A6 rules:
+A standalone, real-time browser strategy prototype following the first terraformed world in the A6 [landing-to-starlight story](https://jelaludo.github.io/SentryTowers_A6/terraforming-story/).
 
-Click a planet to open its action wheel. The wheel offers the actions available for that world: launch from a player world, choose a destination planet, review the From → To route and fleet size, then confirm; terraform a secured foothold; pulse a rival with the SOL laser; or aim compatible collectors at an online receiver. The compact Orders card shows the current fleet source and advances a turn. Escape, the close button, or a click on empty map space dismisses the wheel.
+Play: https://jelaludo.github.io/Dyson-Command/
+
+## How to play
+
+- In **Frontier**, press a green planet, drag to another planet, and release to launch ships immediately. The **Ships per drag** slider defaults to 50% of the source garrison. Send more ships than the target has defenders. Fleets cross the map over seconds. Click a captured green foothold to terraform it for 40 stored power.
+- Drag one of the four gold collectors near the star to a built green planet. When a reachable, unused receiver glows, release to snap the beam into place. Each receiver takes one beam. Keyboard users can select a collector in the Light panel, then select a planet.
+- The clock runs automatically. Every two seconds, built worlds produce ships and linked collectors add their output to stored power. Rival garrisons grow every other cycle. Actions do not advance time. Win Frontier with four built worlds and at least 75 light output at once.
+- In **Optics**, four receivers are already online. Connect all four collectors to different planets for 82 output; 80 wins. There are no fleets or lasers in this mode.
+- The optional SOL laser is available after clicking a red rival planet. It costs 24 stored power, removes up to seven defenders, and does not capture the planet.
+
+The **Rules** tab provides a beginner explanation and an expandable exact reference. It stays available while the simulation runs. Restart and mode switching begin a new scenario. There is no save file, account, network opponent, or physical orbit simulation.
+
+`game-core.js` owns the deterministic rules; `game.js` handles the map and pointer controls. Use `node --test game-core.test.mjs` for fleet timing, automatic economy, receiver snapping, combat costs and both win conditions. Run `python3 -m http.server 8000` from this directory for local play at http://localhost:8000/. GitHub Pages serves the root of `main`.
+
+The existing A6 GLB models remain in their separate Workshop viewers. Planet receivers and this star-orbit collector network are gameplay abstractions, not exported models or physical claims. Galcon's fleet-swarm concept was a mechanical reference:
 
 https://www.galcon.com/classic/index.html
-
-## Frontier campaign
-
-- Choose a controlled source world and destination. Send 1–N available ships; travel takes 1–3 abstract turns. A fleet must exceed defenders to secure a foothold. Surviving ships remain there.
-- A foothold becomes a productive, receiver-equipped world after a 40-power terraforming action. It then builds ships each turn. This is a board-game transformation, not a simulated planetary climate.
-- Four independent star-orbit collectors can be aimed only at specified receivers. A receiver accepts one beam. Unowned, unterraformed and saturated destinations produce zero. The four yields are 16, 18, 22 and 26 abstract power units per turn.
-- A SOL orbital-laser pulse costs 24 stored power and removes seven defenders from a rival garrison. It is an optional tactic, not a physical energy/weapon model for the SOL-82 or SOL-88 GLBs.
-- Win after terraforming four worlds and routing at least 75 output. Rival worlds can be fought, but the objective can also be reached through neutral worlds and light-routing choices.
-
-## Optics challenge
-
-Four receiver worlds start online. Fleets and lasers are disabled. Rotate the collectors until their beams reach four distinct worlds for 82 total output; 80 wins. This is the user's light-puzzle-only option.
-
-`game-core.js` owns deterministic state and rules; `game.js` handles the interface. Reset and mode switching start a new scenario. No user account, save file, network play, random opponents, real orbital mechanics, Dyson completion claim or measured performance is implied. The four collector nodes are a speculative stellar network inspired by the HEL/SEED language; the existing First Light reflector ring remains in planetary orbit. Planet-side receptors/receivers are represented by abstract map state and have no authored GLB yet.
-
-Use `node --test game-core.test.mjs` to check both win paths, fleet resolution, laser cost and receiver saturation. Run `python3 -m http.server 8000` from the repository root to play locally at http://localhost:8000/. GitHub Pages deploys the root of `main`. The A6 Workshop remains a separate asset library, linked from this game; no asset export or compressed derivative is part of this repository.

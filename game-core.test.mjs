@@ -1,54 +1,45 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {makeGame,planet,beamLinks,powerOutput,launchFleet,terraform,laserPulse,rotateCollector,aimCollector,waitTurn,objective} from './game-core.js';
+import {makeGame,planet,beamLinks,powerOutput,launchFleet,terraform,laserPulse,aimCollector,advanceTime,objective} from './game-core.js';
 
-test('optics challenge needs four distinct live receivers',()=>{
- const state=makeGame('optics');assert.equal(powerOutput(state),16);assert.equal(beamLinks(state)[1].reason,'receiver saturated');
- rotateCollector(state,'hel2');rotateCollector(state,'seed1');rotateCollector(state,'seed1');rotateCollector(state,'seed2');assert.equal(powerOutput(state),56);assert.equal(state.won,false);
- rotateCollector(state,'seed2');assert.equal(powerOutput(state),82);assert.equal(state.won,true);assert.equal(launchFleet(state,'eos','vesper',5).ok,false);
+test('ships launch immediately and arrive as real time passes',()=>{
+ const game=makeGame(),result=launchFleet(game,'eos','iona',9);
+ assert.equal(result.ok,true);assert.equal(planet(game,'eos').ships,9);assert.equal(game.turn,0);assert.equal(game.fleets.length,1);
+ advanceTime(game,3.9);assert.equal(planet(game,'iona').owner,'neutral');
+ advanceTime(game,.2);assert.equal(planet(game,'iona').owner,'player');assert.equal(planet(game,'iona').terraform,false);
+ assert.equal(game.turn,2);assert.equal(game.power,67);
 });
 
-test('fleet capture needs a follow-up terraform action and power routing',()=>{
- const state=makeGame();assert.equal(launchFleet(state,'eos','iona',9).ok,true);assert.equal(planet(state,'iona').owner,'neutral');waitTurn(state);assert.equal(planet(state,'iona').owner,'player');assert.equal(planet(state,'iona').terraform,false);assert.equal(powerOutput(state),16);
- assert.equal(terraform(state,'iona').ok,true);rotateCollector(state,'seed1');rotateCollector(state,'seed1');assert.equal(powerOutput(state),38);
- launchFleet(state,'eos','talus',10);waitTurn(state);assert.equal(terraform(state,'talus').ok,true);rotateCollector(state,'hel2');assert.equal(powerOutput(state),56);
- launchFleet(state,'talus','kora',6);assert.equal(planet(state,'kora').owner,'player');assert.equal(terraform(state,'kora').ok,true);assert.equal(objective(state).worlds,4);assert.equal(state.won,false);
- rotateCollector(state,'seed2');rotateCollector(state,'seed2');assert.equal(powerOutput(state),82);assert.equal(state.won,true);
+test('economy advances every two seconds without an action',()=>{
+ const game=makeGame();advanceTime(game,1.9);assert.equal(game.power,35);assert.equal(planet(game,'eos').ships,18);
+ advanceTime(game,.2);assert.equal(game.power,51);assert.equal(planet(game,'eos').ships,22);
+ assert.equal(terraform(game,'iona').ok,false);assert.equal(game.turn,1);
 });
 
-test('orbital pulse spends power and weakens only a rival',()=>{
- const state=makeGame(),before=state.power,defenders=planet(state,'vesper').ships;assert.equal(laserPulse(state,'iona').ok,false);assert.equal(state.power,before);const result=laserPulse(state,'vesper');assert.equal(result.ok,true);assert.equal(planet(state,'vesper').ships,defenders-7+1);assert.equal(state.power,before-24+16);
+test('collectors snap only to reachable, built and free receivers',()=>{
+ const game=makeGame('optics');assert.equal(beamLinks(game)[1].reason,'receiver saturated');
+ assert.equal(aimCollector(game,'hel1','kora').ok,false);
+ assert.equal(aimCollector(game,'hel2','eos').ok,false);
+ assert.equal(aimCollector(game,'hel2','talus').ok,true);
+ assert.equal(aimCollector(game,'seed1','iona').ok,true);
+ assert.equal(aimCollector(game,'seed2','kora').ok,true);
+ assert.equal(powerOutput(game),82);assert.equal(game.won,true);
 });
 
-test('invalid orders do not advance the turn',()=>{
- const state=makeGame(),turn=state.turn;assert.equal(launchFleet(state,'eos','eos',3).ok,false);assert.equal(launchFleet(state,'eos','iona',99).ok,false);assert.equal(terraform(state,'iona').ok,false);assert.equal(state.turn,turn);
+test('frontier can win through live travel, building and beam alignment',()=>{
+ const game=makeGame();launchFleet(game,'eos','iona',9);advanceTime(game,4);
+ assert.equal(terraform(game,'iona').ok,true);assert.equal(aimCollector(game,'seed1','iona').ok,true);
+ launchFleet(game,'eos','talus',12);advanceTime(game,4);
+ assert.equal(terraform(game,'talus').ok,true);assert.equal(aimCollector(game,'hel2','talus').ok,true);
+ launchFleet(game,'talus','kora',6);advanceTime(game,3);
+ assert.equal(planet(game,'kora').owner,'player');assert.equal(terraform(game,'kora').ok,true);
+ assert.equal(aimCollector(game,'seed2','kora').ok,true);
+ assert.equal(objective(game).worlds,4);assert.equal(powerOutput(game),82);assert.equal(game.won,true);
 });
 
-test('direct collector aiming respects reachability and receiver capacity',()=>{
- const state=makeGame('optics'),turn=state.turn;
- assert.equal(aimCollector(state,'hel1','kora').ok,false);
- assert.equal(aimCollector(state,'hel2','talus').ok,true);
- assert.equal(aimCollector(state,'seed1','iona').ok,true);
- assert.equal(aimCollector(state,'seed2','kora').ok,true);
- assert.equal(powerOutput(state),82);
- assert.equal(state.won,true);
- assert.equal(state.turn,turn);
-});
-
-test('beginner walkthrough wins with the exact ships and beam choices shown in Rules',()=>{
- const state=makeGame();
- assert.equal(launchFleet(state,'eos','iona',9).ok,true);
- waitTurn(state);
- assert.equal(terraform(state,'iona').ok,true);
- assert.equal(aimCollector(state,'seed1','iona').ok,true);
- assert.equal(launchFleet(state,'eos','talus',10).ok,true);
- waitTurn(state);
- assert.equal(terraform(state,'talus').ok,true);
- assert.equal(aimCollector(state,'hel2','talus').ok,true);
- assert.equal(launchFleet(state,'talus','kora',6).ok,true);
- assert.equal(terraform(state,'kora').ok,true);
- assert.equal(aimCollector(state,'seed2','kora').ok,true);
- assert.equal(objective(state).worlds,4);
- assert.equal(powerOutput(state),82);
- assert.equal(state.won,true);
+test('laser and invalid orders do not advance the clock',()=>{
+ const game=makeGame(),before=game.power,defenders=planet(game,'vesper').ships;
+ assert.equal(launchFleet(game,'eos','eos',4).ok,false);assert.equal(laserPulse(game,'iona').ok,false);
+ assert.equal(laserPulse(game,'vesper').ok,true);assert.equal(planet(game,'vesper').ships,defenders-7);
+ assert.equal(game.power,before-24);assert.equal(game.turn,0);
 });
